@@ -5,7 +5,11 @@
   "mixins": [
   ],
   "client": [
-    "MixinMainMenu"
+    "MixinChunkProviderGenerate",
+    "MixinWorld",
+    "MixinThreadDownloadResources",
+    "MixinNoiseGeneratorOctaves",
+    "MixinWorldGenTrees"
   ],
   "injectors": {
     "defaultRequire": 1
