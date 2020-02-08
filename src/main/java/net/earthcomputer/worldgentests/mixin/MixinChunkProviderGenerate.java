@@ -28,6 +28,21 @@ public abstract class MixinChunkProviderGenerate {
     @Unique private int index;
     //@Unique private Random rand2 = new Random();
 
+    private static final int WATERFALL_X = 15;
+    private static final int WATERFALL_Y = 76;
+    private static final int WATERFALL_Z = 10;
+    private static final int TREE1_X = WATERFALL_X - 5; // Left tree on the image
+    private static final int TREE1_Z = WATERFALL_Z - 8;
+    private static final int TREE1_HEIGHT = 5;
+    private static final int TREE2_X = WATERFALL_X - 3; // right tree on the image
+    private static final int TREE2_Z = WATERFALL_Z + 3;
+    private static final int TREE2_HEIGHT = 5;
+    private static final int TREE3_MIN_X = WATERFALL_X + 3; // blob
+    private static final int TREE3_MAX_X = WATERFALL_X + 5; // blob
+    private static final int TREE3_MIN_Z = WATERFALL_Z - 9;
+    private static final int TREE3_MAX_Z = WATERFALL_Z - 6;
+    private static final boolean THIRD_TREE_ENABLED = false;
+
     /**
      * lazy
      * @author earth
@@ -49,18 +64,31 @@ public abstract class MixinChunkProviderGenerate {
         }
         this.func_4062_a(x, z, var3, this.field_4179_v);
 
-        int tree1X = Math.floorMod(15 - 5 - 8, 16);
-        int tree1Z = Math.floorMod(10 - 8 - 8, 16);
-        int tree2X = Math.floorMod(15 - 3 - 8, 16);
-        int tree2Z = Math.floorMod(10 + 3 - 8, 16);
+        int tree1X = Math.floorMod(TREE1_X - 8, 16);
+        int tree1Z = Math.floorMod(TREE1_Z - 8, 16);
+        int tree2X = Math.floorMod(TREE2_X - 8, 16);
+        int tree2Z = Math.floorMod(TREE2_Z - 8, 16);
+        int tree3MinX = Math.floorMod(TREE3_MIN_X - 1 - 8, 16);
+        int tree3MinZ = Math.floorMod(TREE3_MIN_Z - 1 - 8, 16);
+        int tree3MaxX = Math.floorMod(TREE3_MAX_X + 1 - 8, 16);
+        int tree3MaxZ = Math.floorMod(TREE3_MAX_Z + 1 - 8, 16);
         for (int dx = 0; dx < 16; dx++) {
             for (int dz = 0; dz < 16; dz++) {
-                if (((Math.abs(dx - tree1X) > 1) || (Math.abs(dz - tree1Z) > 1))
-                        && ((Math.abs(dx - tree2X) > 1) || (Math.abs(dz - tree2Z) > 1))) {
+                if ((dz < WATERFALL_Z - 1 - 8 || dz > WATERFALL_Z + 1 - 8 || dx > WATERFALL_X - 3 - 8 || dx < WATERFALL_X - 5 - 8)
+                        && (Math.max(Math.abs(dx - tree1X), Math.abs(dz - tree1Z)) > 1)
+                        && (Math.max(Math.abs(dx - tree2X), Math.abs(dz - tree2Z)) > 1)) {
                     setBlock(var3, dx, 69, dz, Block.cobblestone.blockID);
                 }
             }
         }
+
+        // waterfall blocks
+        setBlock(var3, WATERFALL_X - 8, WATERFALL_Y, WATERFALL_Z - 8, Block.stone.blockID);
+        setBlock(var3, WATERFALL_X + 1 - 8, WATERFALL_Y, WATERFALL_Z - 8, Block.stone.blockID);
+        setBlock(var3, WATERFALL_X - 8, WATERFALL_Y, WATERFALL_Z - 1 - 8, Block.stone.blockID);
+        setBlock(var3, WATERFALL_X - 8, WATERFALL_Y, WATERFALL_Z + 1 - 8, Block.stone.blockID);
+        setBlock(var3, WATERFALL_X - 8, WATERFALL_Y - 1, WATERFALL_Z - 8, Block.stone.blockID);
+        setBlock(var3, WATERFALL_X - 8, WATERFALL_Y + 1, WATERFALL_Z - 8, Block.stone.blockID);
 
         if (x == 0 && z == 0) {
             setBlock(var3, 0, 69, 0, Block.sand.blockID); // spawn point
@@ -204,7 +232,7 @@ public abstract class MixinChunkProviderGenerate {
             var51 = new WorldGenBigTree();
         }
 
-        var42 = 9;
+        var42 = 13;
 
         for(int var60 = 0; var60 < var42; ++var60) {
             int var17 = var4 + this.rand.nextInt(16) + 8;
