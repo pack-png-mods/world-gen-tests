@@ -23,8 +23,10 @@ public abstract class MixinChunkProviderGenerate {
     @Shadow private double[] field_4178_w;
     @Shadow private MobSpawnerBase[] field_4179_v;
 
-    @Shadow public abstract void func_4062_a(int var1, int var2, byte[] var3, MobSpawnerBase[] var4);
-
+    @Shadow private double[] field_905_r;
+    @Shadow private double[] field_904_s;
+    @Shadow private NoiseGeneratorOctaves field_909_n;
+    @Shadow private NoiseGeneratorOctaves field_908_o;
     @Unique private int index;
     //@Unique private Random rand2 = new Random();
 
@@ -47,6 +49,7 @@ public abstract class MixinChunkProviderGenerate {
      * lazy
      * @author earth
      */
+    /*
     @Overwrite
     public Chunk func_533_b(int x, int z) {
         this.rand.setSeed((long)x * 341873128712L + (long)z * 132897987541L);
@@ -97,9 +100,113 @@ public abstract class MixinChunkProviderGenerate {
         var4.func_1024_c();
         return var4;
     }
+    */
 
     private static void setBlock(byte[] blocks, int x, int y, int z, int block) {
         blocks[x << 11 | z << 7 | y] = (byte) block;
+    }
+
+    /**
+     * lazy
+     * @author earth
+     */
+    @Overwrite
+    public void func_4062_a(int var1, int var2, byte[] var3, MobSpawnerBase[] var4) {
+        byte var5 = 64;
+        double var6 = 0.03125D;
+        this.field_905_r = this.field_909_n.func_807_a(this.field_905_r, (double)(var1 * 16), (double)(var2 * 16), 0.0D, 16, 16, 1, var6, var6, 1.0D);
+        this.field_904_s = this.field_909_n.func_807_a(this.field_904_s, (double)(var2 * 16), 109.0134D, (double)(var1 * 16), 16, 1, 16, var6, 1.0D, var6);
+        this.field_903_t = this.field_908_o.func_807_a(this.field_903_t, (double)(var1 * 16), (double)(var2 * 16), 0.0D, 16, 16, 1, var6 * 2.0D, var6 * 2.0D, var6 * 2.0D);
+
+        double[][] heights = new double[16][16];
+        int[][] intHeights = new int[16][16];
+        for(int var8 = 0; var8 < 16; ++var8) {
+            for(int var9 = 0; var9 < 16; ++var9) {
+                MobSpawnerBase var10 = var4[var8 * 16 + var9];
+                boolean var11 = this.field_905_r[var8 + var9 * 16] + this.rand.nextDouble() * 0.2D > 0.0D;
+                boolean var12 = this.field_904_s[var8 + var9 * 16] + this.rand.nextDouble() * 0.2D > 3.0D;
+                int var13 = (int)(this.field_903_t[var8 + var9 * 16] / 3.0D + 3.0D + this.rand.nextDouble() * 0.25D);
+                heights[var8][var9] = this.field_903_t[var8 + var9 * 16] / 3.0D + 3.0D;
+                intHeights[var8][var9] = var13;
+                int var14 = -1;
+                byte var15 = var10.field_4242_o;
+                byte var16 = var10.field_4241_p;
+
+                for(int var17 = 127; var17 >= 0; --var17) {
+                    int var18 = (var8 * 16 + var9) * 128 + var17;
+                    if (var17 <= 0 + this.rand.nextInt(5)) {
+                        var3[var18] = (byte)Block.bedrock.blockID;
+                    } else {
+                        byte var19 = var3[var18];
+                        if (var19 == 0) {
+                            var14 = -1;
+                        } else if (var19 == Block.stone.blockID) {
+                            if (var14 == -1) {
+                                if (var13 <= 0) {
+                                    var15 = 0;
+                                    var16 = (byte)Block.stone.blockID;
+                                } else if (var17 >= var5 - 4 && var17 <= var5 + 1) {
+                                    var15 = var10.field_4242_o;
+                                    var16 = var10.field_4241_p;
+                                    if (var12) {
+                                        var15 = 0;
+                                    }
+
+                                    if (var12) {
+                                        var16 = (byte)Block.gravel.blockID;
+                                    }
+
+                                    if (var11) {
+                                        var15 = (byte)Block.sand.blockID;
+                                    }
+
+                                    if (var11) {
+                                        var16 = (byte)Block.sand.blockID;
+                                    }
+                                }
+
+                                if (var17 < var5 && var15 == 0) {
+                                    var15 = (byte)Block.waterMoving.blockID;
+                                }
+
+                                var14 = var13;
+                                if (var17 >= var5 - 1) {
+                                    var3[var18] = var15;
+                                } else {
+                                    var3[var18] = var16;
+                                }
+                            } else if (var14 > 0) {
+                                --var14;
+                                var3[var18] = var16;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        /*
+        for (int dx = 0; dx < 16; dx++) {
+            double[] heightArr = heights[dx];
+            int[] intHeightArr = intHeights[dx];
+            for (int dz = 1; dz < 13; dz++) {
+                if ((int) heightArr[dz - 1] == 2 && (int) heightArr[dz] == 3 && (int) heightArr[dz + 1] == 2 && (int) heightArr[dz + 2] == 2 && (int) heightArr[dz + 3] == 3)
+                    WorldGenTests.successfulSamples++;
+                if (intHeightArr[dz - 1] == 2 && intHeightArr[dz] == 3 && intHeightArr[dz + 1] == 2 && intHeightArr[dz + 2] == 2 && intHeightArr[dz + 3] == 3)
+                    WorldGenTests.successfulRandomSamples++;
+                WorldGenTests.totalSamples++;
+            }
+        }
+         */
+        if (var1 == -3 && var2 == 3) {
+            for (int dz = 0; dz < 16; dz++) {
+                for (int dx = 0; dx < 16; dx++) {
+                    System.out.print(intHeights[dx][dz] + ";");
+                }
+                System.out.println();
+            }
+        }
+
     }
 
 
@@ -121,15 +228,13 @@ public abstract class MixinChunkProviderGenerate {
         long var9 = this.rand.nextLong() / 2L * 2L + 1L;
         this.rand.setSeed((long)var2 * var7 + (long)var3 * var9 ^ this.worldObj.randomSeed);
          */
-        WorldGenTests.dungeonSuccessful = false;
         double var11 = 0.25D;
 
         for(int var13 = 0; var13 < 8; ++var13) {
             int var14 = var4 + this.rand.nextInt(16) + 8;
             int var15 = this.rand.nextInt(128);
             int var16 = var5 + this.rand.nextInt(16) + 8;
-            if ((new WorldGenDungeons()).generate(this.worldObj, this.rand, var14, var15, var16))
-                WorldGenTests.dungeonSuccessful = true;
+            (new WorldGenDungeons()).generate(this.worldObj, this.rand, var14, var15, var16);
         }
 
         for(int var25 = 0; var25 < 10; ++var25) {
@@ -232,7 +337,7 @@ public abstract class MixinChunkProviderGenerate {
             var51 = new WorldGenBigTree();
         }
 
-        var42 = 13;
+        var42 = 5;
 
         for(int var60 = 0; var60 < var42; ++var60) {
             int var17 = var4 + this.rand.nextInt(16) + 8;
@@ -322,10 +427,6 @@ public abstract class MixinChunkProviderGenerate {
                 }
             }
         }
-
-        if (WorldGenTests.dungeonSuccessful)
-            WorldGenTests.chunksWithDungeons++;
-        WorldGenTests.totalChunks++;
 
         BlockSand.fallInstantly = false;
     }

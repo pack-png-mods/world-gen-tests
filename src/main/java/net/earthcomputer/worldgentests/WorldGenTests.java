@@ -4,16 +4,15 @@ import java.util.Objects;
 
 public class WorldGenTests {
 
-    public static boolean dungeonSuccessful = false;
+    public static int totalSamples = 0;
+    public static int successfulRandomSamples = 0;
+    public static int successfulSamples = 0;
 
-    public static int chunksWithDungeons = 0;
-    public static int totalChunks = 0;
-
-    private static int tickCounter;
+    public static int tickCounter;
 
     public static void tick() {
-        if (tickCounter++ % 100 == 0 && totalChunks != 0) {
-            System.out.printf("Dungeon proportion: %.3f, tested %d chunks\n", (double) chunksWithDungeons / totalChunks, totalChunks);
+        if (tickCounter++ % 100 == 0 && totalSamples != 0) {
+            //System.out.printf("Successful proportion: %d, with random: %d, tested %d samples\n", successfulSamples, successfulRandomSamples, totalSamples);
         }
     }
 
