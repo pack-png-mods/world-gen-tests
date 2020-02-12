@@ -1,6 +1,9 @@
 package net.earthcomputer.worldgentests;
 
+import java.lang.reflect.Field;
 import java.util.Objects;
+import java.util.Random;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class WorldGenTests {
 
@@ -13,6 +16,16 @@ public class WorldGenTests {
     public static void tick() {
         if (tickCounter++ % 100 == 0 && totalSamples != 0) {
             //System.out.printf("Successful proportion: %d, with random: %d, tested %d samples\n", successfulSamples, successfulRandomSamples, totalSamples);
+        }
+    }
+
+    public static long getSeed(Random rand) {
+        try {
+            Field field = Random.class.getDeclaredField("seed");
+            field.setAccessible(true);
+            return ((AtomicLong) field.get(rand)).get();
+        } catch (ReflectiveOperationException e) {
+            throw new AssertionError(e);
         }
     }
 

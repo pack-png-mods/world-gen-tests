@@ -121,11 +121,17 @@ public abstract class MixinChunkProviderGenerate {
         double[][] heights = new double[16][16];
         int[][] intHeights = new int[16][16];
         for(int var8 = 0; var8 < 16; ++var8) {
+            double d1 = 0, d2 = 0;
             for(int var9 = 0; var9 < 16; ++var9) {
                 MobSpawnerBase var10 = var4[var8 * 16 + var9];
                 boolean var11 = this.field_905_r[var8 + var9 * 16] + this.rand.nextDouble() * 0.2D > 0.0D;
                 boolean var12 = this.field_904_s[var8 + var9 * 16] + this.rand.nextDouble() * 0.2D > 3.0D;
-                int var13 = (int)(this.field_903_t[var8 + var9 * 16] / 3.0D + 3.0D + this.rand.nextDouble() * 0.25D);
+                double randVal;
+                int var13 = (int)(this.field_903_t[var8 + var9 * 16] / 3.0D + 3.0D + (randVal = this.rand.nextDouble()) * 0.25D);
+                if (var9 == (-30 & 15))
+                    d1 = randVal;
+                else if (var9 == (-29 & 15))
+                    d2 = randVal;
                 heights[var8][var9] = this.field_903_t[var8 + var9 * 16] / 3.0D + 3.0D;
                 intHeights[var8][var9] = var13;
                 int var14 = -1;
@@ -181,6 +187,12 @@ public abstract class MixinChunkProviderGenerate {
                             }
                         }
                     }
+                }
+            }
+            if (d1 > d2) {
+                int globalX = var1 << 4 | var8;
+                if (globalX >= 0 && globalX <= 80 && var2 == (-30 >> 4)) {
+                    System.out.println(globalX);
                 }
             }
         }
