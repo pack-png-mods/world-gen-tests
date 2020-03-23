@@ -27,10 +27,13 @@ public abstract class MixinChunkProviderGenerate {
     @Shadow private double[] field_904_s;
     @Shadow private NoiseGeneratorOctaves field_909_n;
     @Shadow private NoiseGeneratorOctaves field_908_o;
+
+    @Shadow public abstract void func_4062_a(int var1, int var2, byte[] var3, MobSpawnerBase[] var4);
+
     @Unique private int index;
     //@Unique private Random rand2 = new Random();
 
-    private static final int WATERFALL_X = 15;
+    private static final int WATERFALL_X = 8;
     private static final int WATERFALL_Y = 76;
     private static final int WATERFALL_Z = 10;
     private static final int TREE1_X = WATERFALL_X - 5; // Left tree on the image
@@ -43,13 +46,14 @@ public abstract class MixinChunkProviderGenerate {
     private static final int TREE3_MAX_X = WATERFALL_X + 5; // blob
     private static final int TREE3_MIN_Z = WATERFALL_Z - 9;
     private static final int TREE3_MAX_Z = WATERFALL_Z - 6;
-    private static final boolean THIRD_TREE_ENABLED = false;
+    private static final boolean THIRD_TREE_ENABLED = true;
+    private static final long SEED = 210545141119052L;
+    private static final int TREE_ATTEMPTS = 13;
 
     /**
      * lazy
      * @author earth
      */
-    /*
     @Overwrite
     public Chunk func_533_b(int x, int z) {
         this.rand.setSeed((long)x * 341873128712L + (long)z * 132897987541L);
@@ -65,21 +69,26 @@ public abstract class MixinChunkProviderGenerate {
                 }
             }
         }
-        this.func_4062_a(x, z, var3, this.field_4179_v);
+        this.func_4062_a(x, z, var3, this.field_4179_v); // decorate
 
         int tree1X = Math.floorMod(TREE1_X - 8, 16);
         int tree1Z = Math.floorMod(TREE1_Z - 8, 16);
         int tree2X = Math.floorMod(TREE2_X - 8, 16);
         int tree2Z = Math.floorMod(TREE2_Z - 8, 16);
-        int tree3MinX = Math.floorMod(TREE3_MIN_X - 1 - 8, 16);
-        int tree3MinZ = Math.floorMod(TREE3_MIN_Z - 1 - 8, 16);
-        int tree3MaxX = Math.floorMod(TREE3_MAX_X + 1 - 8, 16);
-        int tree3MaxZ = Math.floorMod(TREE3_MAX_Z + 1 - 8, 16);
+        int tree3MinX = Math.floorMod(TREE3_MIN_X - 8, 16);
+        int tree3MinZ = Math.floorMod(TREE3_MIN_Z - 8, 16);
+        int tree3MaxX = Math.floorMod(TREE3_MAX_X - 8, 16);
+        int tree3MaxZ = Math.floorMod(TREE3_MAX_Z - 8, 16);
         for (int dx = 0; dx < 16; dx++) {
             for (int dz = 0; dz < 16; dz++) {
-                if ((dz < WATERFALL_Z - 1 - 8 || dz > WATERFALL_Z + 1 - 8 || dx > WATERFALL_X - 3 - 8 || dx < WATERFALL_X - 5 - 8)
+                if ((dz < WATERFALL_Z - 1 - 8 || dz > WATERFALL_Z + 1 - 8 || dx > ((WATERFALL_X - 3 - 8) & 15) || dx < ((WATERFALL_X - 5 - 8) & 15))
                         && (Math.max(Math.abs(dx - tree1X), Math.abs(dz - tree1Z)) > 1)
-                        && (Math.max(Math.abs(dx - tree2X), Math.abs(dz - tree2Z)) > 1)) {
+                        && (Math.max(Math.abs(dx - tree2X), Math.abs(dz - tree2Z)) > 1)
+                        && (!THIRD_TREE_ENABLED
+                            || (Math.max(Math.abs(dx - tree3MinX), Math.abs(dz - tree3MinZ)) > 1)
+                                && (Math.max(Math.abs(dx - tree3MinX), Math.abs(dz - tree3MaxZ)) > 1)
+                                && (Math.max(Math.abs(dx - tree3MaxX), Math.abs(dz - tree3MinZ)) > 1)
+                                && (Math.max(Math.abs(dx - tree3MaxX), Math.abs(dz - tree3MaxZ)) > 1))) {
                     setBlock(var3, dx, 69, dz, Block.cobblestone.blockID);
                 }
             }
@@ -100,126 +109,127 @@ public abstract class MixinChunkProviderGenerate {
         var4.func_1024_c();
         return var4;
     }
-    */
 
     private static void setBlock(byte[] blocks, int x, int y, int z, int block) {
         blocks[x << 11 | z << 7 | y] = (byte) block;
     }
 
-    /**
-     * lazy
-     * @author earth
-     */
-    @Overwrite
-    public void func_4062_a(int var1, int var2, byte[] var3, MobSpawnerBase[] var4) {
-        byte var5 = 64;
-        double var6 = 0.03125D;
-        this.field_905_r = this.field_909_n.func_807_a(this.field_905_r, (double)(var1 * 16), (double)(var2 * 16), 0.0D, 16, 16, 1, var6, var6, 1.0D);
-        this.field_904_s = this.field_909_n.func_807_a(this.field_904_s, (double)(var2 * 16), 109.0134D, (double)(var1 * 16), 16, 1, 16, var6, 1.0D, var6);
-        this.field_903_t = this.field_908_o.func_807_a(this.field_903_t, (double)(var1 * 16), (double)(var2 * 16), 0.0D, 16, 16, 1, var6 * 2.0D, var6 * 2.0D, var6 * 2.0D);
-
-        double[][] heights = new double[16][16];
-        int[][] intHeights = new int[16][16];
-        for(int var8 = 0; var8 < 16; ++var8) {
-            double d1 = 0, d2 = 0;
-            for(int var9 = 0; var9 < 16; ++var9) {
-                MobSpawnerBase var10 = var4[var8 * 16 + var9];
-                boolean var11 = this.field_905_r[var8 + var9 * 16] + this.rand.nextDouble() * 0.2D > 0.0D;
-                boolean var12 = this.field_904_s[var8 + var9 * 16] + this.rand.nextDouble() * 0.2D > 3.0D;
-                double randVal;
-                int var13 = (int)(this.field_903_t[var8 + var9 * 16] / 3.0D + 3.0D + (randVal = this.rand.nextDouble()) * 0.25D);
-                if (var9 == (-30 & 15))
-                    d1 = randVal;
-                else if (var9 == (-29 & 15))
-                    d2 = randVal;
-                heights[var8][var9] = this.field_903_t[var8 + var9 * 16] / 3.0D + 3.0D;
-                intHeights[var8][var9] = var13;
-                int var14 = -1;
-                byte var15 = var10.field_4242_o;
-                byte var16 = var10.field_4241_p;
-
-                for(int var17 = 127; var17 >= 0; --var17) {
-                    int var18 = (var8 * 16 + var9) * 128 + var17;
-                    if (var17 <= 0 + this.rand.nextInt(5)) {
-                        var3[var18] = (byte)Block.bedrock.blockID;
-                    } else {
-                        byte var19 = var3[var18];
-                        if (var19 == 0) {
-                            var14 = -1;
-                        } else if (var19 == Block.stone.blockID) {
-                            if (var14 == -1) {
-                                if (var13 <= 0) {
-                                    var15 = 0;
-                                    var16 = (byte)Block.stone.blockID;
-                                } else if (var17 >= var5 - 4 && var17 <= var5 + 1) {
-                                    var15 = var10.field_4242_o;
-                                    var16 = var10.field_4241_p;
-                                    if (var12) {
-                                        var15 = 0;
-                                    }
-
-                                    if (var12) {
-                                        var16 = (byte)Block.gravel.blockID;
-                                    }
-
-                                    if (var11) {
-                                        var15 = (byte)Block.sand.blockID;
-                                    }
-
-                                    if (var11) {
-                                        var16 = (byte)Block.sand.blockID;
-                                    }
-                                }
-
-                                if (var17 < var5 && var15 == 0) {
-                                    var15 = (byte)Block.waterMoving.blockID;
-                                }
-
-                                var14 = var13;
-                                if (var17 >= var5 - 1) {
-                                    var3[var18] = var15;
-                                } else {
-                                    var3[var18] = var16;
-                                }
-                            } else if (var14 > 0) {
-                                --var14;
-                                var3[var18] = var16;
-                            }
-                        }
-                    }
-                }
-            }
-            if (d1 > d2) {
-                int globalX = var1 << 4 | var8;
-                if (globalX >= 0 && globalX <= 80 && var2 == (-30 >> 4)) {
-                    System.out.println(globalX);
-                }
-            }
-        }
-
-        /*
-        for (int dx = 0; dx < 16; dx++) {
-            double[] heightArr = heights[dx];
-            int[] intHeightArr = intHeights[dx];
-            for (int dz = 1; dz < 13; dz++) {
-                if ((int) heightArr[dz - 1] == 2 && (int) heightArr[dz] == 3 && (int) heightArr[dz + 1] == 2 && (int) heightArr[dz + 2] == 2 && (int) heightArr[dz + 3] == 3)
-                    WorldGenTests.successfulSamples++;
-                if (intHeightArr[dz - 1] == 2 && intHeightArr[dz] == 3 && intHeightArr[dz + 1] == 2 && intHeightArr[dz + 2] == 2 && intHeightArr[dz + 3] == 3)
-                    WorldGenTests.successfulRandomSamples++;
-                WorldGenTests.totalSamples++;
-            }
-        }
-         */
-        if (var1 == -3 && var2 == 3) {
-            for (int dz = 0; dz < 16; dz++) {
-                for (int dx = 0; dx < 16; dx++) {
-                    System.out.print(intHeights[dx][dz] + ";");
-                }
-                System.out.println();
-            }
-        }
-
-    }
+//    /**
+//     * lazy
+//     * @author earth
+//     */
+//    @Overwrite
+//    public void func_4062_a(int var1, int var2, byte[] var3, MobSpawnerBase[] var4) {
+//        byte var5 = 64;
+//        double var6 = 0.03125D;
+//        this.field_905_r = this.field_909_n.func_807_a(this.field_905_r, (double)(var1 * 16), (double)(var2 * 16), 0.0D, 16, 16, 1, var6, var6, 1.0D);
+//        this.field_904_s = this.field_909_n.func_807_a(this.field_904_s, (double)(var2 * 16), 109.0134D, (double)(var1 * 16), 16, 1, 16, var6, 1.0D, var6);
+//        this.field_903_t = this.field_908_o.func_807_a(this.field_903_t, (double)(var1 * 16), (double)(var2 * 16), 0.0D, 16, 16, 1, var6 * 2.0D, var6 * 2.0D, var6 * 2.0D);
+//
+//        double[][] heights = new double[16][16];
+//        int[][] intHeights = new int[16][16];
+//        for(int var8 = 0; var8 < 16; ++var8) {
+//            double dLeft = 0, dMiddle = 0, dRight = 0;
+//            for(int var9 = 0; var9 < 16; ++var9) {
+//                MobSpawnerBase var10 = var4[var8 * 16 + var9];
+//                boolean var11 = this.field_905_r[var8 + var9 * 16] + this.rand.nextDouble() * 0.2D > 0.0D;
+//                boolean var12 = this.field_904_s[var8 + var9 * 16] + this.rand.nextDouble() * 0.2D > 3.0D;
+//                double randVal;
+//                int var13 = (int)(this.field_903_t[var8 + var9 * 16] / 3.0D + 3.0D + (randVal = this.rand.nextDouble()) * 0.25D);
+//                if (var9 == (-30 & 15))
+//                    dMiddle = randVal;
+//                else if (var9 == (-29 & 15))
+//                    dRight = randVal;
+//                else if (var9 == (-31 & 15))
+//                    dLeft = randVal;
+//                heights[var8][var9] = this.field_903_t[var8 + var9 * 16] / 3.0D + 3.0D;
+//                intHeights[var8][var9] = var13;
+//                int var14 = -1;
+//                byte var15 = var10.field_4242_o;
+//                byte var16 = var10.field_4241_p;
+//
+//                for(int var17 = 127; var17 >= 0; --var17) {
+//                    int var18 = (var8 * 16 + var9) * 128 + var17;
+//                    if (var17 <= 0 + this.rand.nextInt(5)) {
+//                        var3[var18] = (byte)Block.bedrock.blockID;
+//                    } else {
+//                        byte var19 = var3[var18];
+//                        if (var19 == 0) {
+//                            var14 = -1;
+//                        } else if (var19 == Block.stone.blockID) {
+//                            if (var14 == -1) {
+//                                if (var13 <= 0) {
+//                                    var15 = 0;
+//                                    var16 = (byte)Block.stone.blockID;
+//                                } else if (var17 >= var5 - 4 && var17 <= var5 + 1) {
+//                                    var15 = var10.field_4242_o;
+//                                    var16 = var10.field_4241_p;
+//                                    if (var12) {
+//                                        var15 = 0;
+//                                    }
+//
+//                                    if (var12) {
+//                                        var16 = (byte)Block.gravel.blockID;
+//                                    }
+//
+//                                    if (var11) {
+//                                        var15 = (byte)Block.sand.blockID;
+//                                    }
+//
+//                                    if (var11) {
+//                                        var16 = (byte)Block.sand.blockID;
+//                                    }
+//                                }
+//
+//                                if (var17 < var5 && var15 == 0) {
+//                                    var15 = (byte)Block.waterMoving.blockID;
+//                                }
+//
+//                                var14 = var13;
+//                                if (var17 >= var5 - 1) {
+//                                    var3[var18] = var15;
+//                                } else {
+//                                    var3[var18] = var16;
+//                                }
+//                            } else if (var14 > 0) {
+//                                --var14;
+//                                var3[var18] = var16;
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+//            if (dMiddle > dRight && dLeft < dMiddle + 0.5) {
+//                int globalX = var1 << 4 | var8;
+//                if (globalX >= 0 && globalX <= 180 && var2 == (-30 >> 4)) {
+//                    System.out.println(globalX);
+//                }
+//            }
+//        }
+//
+//        /*
+//        for (int dx = 0; dx < 16; dx++) {
+//            double[] heightArr = heights[dx];
+//            int[] intHeightArr = intHeights[dx];
+//            for (int dz = 1; dz < 13; dz++) {
+//                if ((int) heightArr[dz - 1] == 2 && (int) heightArr[dz] == 3 && (int) heightArr[dz + 1] == 2 && (int) heightArr[dz + 2] == 2 && (int) heightArr[dz + 3] == 3)
+//                    WorldGenTests.successfulSamples++;
+//                if (intHeightArr[dz - 1] == 2 && intHeightArr[dz] == 3 && intHeightArr[dz + 1] == 2 && intHeightArr[dz + 2] == 2 && intHeightArr[dz + 3] == 3)
+//                    WorldGenTests.successfulRandomSamples++;
+//                WorldGenTests.totalSamples++;
+//            }
+//        }
+//         */
+//        if (var1 == -3 && var2 == 3) {
+//            for (int dz = 0; dz < 16; dz++) {
+//                for (int dx = 0; dx < 16; dx++) {
+//                    System.out.print(intHeights[dx][dz] + ";");
+//                }
+//                System.out.println();
+//            }
+//        }
+//
+//    }
 
 
     /**
@@ -232,14 +242,14 @@ public abstract class MixinChunkProviderGenerate {
         int var4 = var2 * 16;
         int var5 = var3 * 16;
         MobSpawnerBase var6 = MobSpawnerBase.field_4254_c;
-        this.rand.setSeed(this.worldObj.randomSeed ^ 0x5deece66dL);
-        /*
-        MobSpawnerBase var6 = this.worldObj.func_4075_a().func_4073_a(var4 + 16, var5 + 16);
+        //this.rand.setSeed(SEED ^ 0x5deece66dL);
+
+        //MobSpawnerBase var6 = this.worldObj.func_4075_a().func_4073_a(var4 + 16, var5 + 16);
         this.rand.setSeed(this.worldObj.randomSeed);
         long var7 = this.rand.nextLong() / 2L * 2L + 1L;
         long var9 = this.rand.nextLong() / 2L * 2L + 1L;
         this.rand.setSeed((long)var2 * var7 + (long)var3 * var9 ^ this.worldObj.randomSeed);
-         */
+
         double var11 = 0.25D;
 
         for(int var13 = 0; var13 < 8; ++var13) {
@@ -349,7 +359,7 @@ public abstract class MixinChunkProviderGenerate {
             var51 = new WorldGenBigTree();
         }
 
-        var42 = 5;
+        var42 = TREE_ATTEMPTS;
 
         for(int var60 = 0; var60 < var42; ++var60) {
             int var17 = var4 + this.rand.nextInt(16) + 8;
